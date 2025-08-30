@@ -25,7 +25,7 @@ export default function CampaignSetup() {
   const handleCreateCampaign = () => {
     // Handle campaign creation logic here
     console.log('Campaign created:', formData)
-    // Could navigate to a success page or dashboard
+    navigate('/loading')
   }
 
   const handleBack = () => {
