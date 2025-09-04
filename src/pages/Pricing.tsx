@@ -4,6 +4,7 @@ import { Check } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { Header } from "@/components/Header"
 import { useState } from "react"
+import { toast } from "sonner"
 
 interface PricingPlan {
   name: string
@@ -72,11 +73,29 @@ export default function Pricing() {
 
   const handlePlanSelect = (planName: string) => {
     setSelectedPlan(planName.toLowerCase())
-    navigate('/platform-selection')
+    
+    // Store the selected plan in localStorage
+    localStorage.setItem('selectedPlan', planName.toLowerCase())
+    
+    // Redirect directly to Meta connection instead of back to landing page
+    handleConnectToMeta()
+  }
+
+  const handleConnectToMeta = () => {
+    // Simulate Meta connection process
+    toast.success("Connecting to Meta...")
+    
+    // Store completion status
+    localStorage.setItem('setupComplete', 'true')
+    
+    // Redirect to dashboard after successful connection
+    setTimeout(() => {
+      navigate('/platform-selection')
+    }, 2000)
   }
 
   const handleBack = () => {
-    navigate('/business-details')
+    navigate('/campaign-setup')
   }
 
   return (

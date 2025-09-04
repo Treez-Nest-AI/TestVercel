@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/Header"
+import { useNavigate } from "react-router-dom"
+import { useDispatch } from "react-redux"
+import { resetCampaign } from "@/store/campaignSlice"
 import { 
   BarChart, 
   Bar, 
@@ -16,6 +19,8 @@ import {
 } from 'recharts'
 
 export default function Dashboard() {
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
   // Sample data for charts
   const weeklyData = [
     { day: 'Mon', impressions: 4000, clicks: 135 },
@@ -76,6 +81,26 @@ export default function Dashboard() {
       clicks: "2,034"
     }
   ]
+  const handleClick = () => {
+    console.log("Create New Campaign button clicked!")
+    
+    // Clear only the campaign-related data, but keep business details and initial setup flag
+    localStorage.removeItem('setupComplete')
+    localStorage.removeItem('businessUrl')
+    localStorage.removeItem('campaignDetails')
+    localStorage.removeItem('selectedPlan')
+         // ✅ Reset Redux values after success
+         dispatch(resetCampaign())
+    
+    // Keep these for returning users:
+    // - businessDetails (user's business info)
+    // - hasCompletedInitialSetup (flag that user completed initial setup)
+    
+    console.log("Cleared campaign data, navigating to home...")
+    
+    // Navigate to home page
+    navigate("/")
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -97,7 +122,13 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            <Button>Create Campaign</Button>
+            <Button 
+              onClick={handleClick}
+              type="button"
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              Create New Campaign
+            </Button>
           </div>
 
           {/* Tabs */}
