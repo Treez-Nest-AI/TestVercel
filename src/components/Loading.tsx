@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { CheckCircle, AlertCircle } from "lucide-react"
 
 // Mock Progress component
@@ -11,16 +12,28 @@ const Progress = ({ value, className }) => (
   </div>
 )
 
+interface LoadingProps {
+  isLoading?: boolean
+  adSetsData?: any
+  error?: any
+  onSuccess?: () => void
+  onError?: (err?: any) => void
+  onRetry?: () => void
+  redirectTo?: string
+}
+
 export default function Loading({ 
-  isLoading, 
+  isLoading = false, 
   adSetsData, 
   error, 
   onSuccess, 
   onError, 
-  onRetry 
-}) {
+  onRetry,
+  redirectTo
+}: LoadingProps) {
   const [progress, setProgress] = useState(0)
   const [currentStep, setCurrentStep] = useState(0)
+  const navigate = useNavigate()
 
   const steps = [
     "Analyzing your campaign data...",
@@ -47,7 +60,11 @@ export default function Loading({
       // API succeeded - complete the progress
       setProgress(100)
       setTimeout(() => {
-        onSuccess?.()
+        if (redirectTo) {
+          navigate(redirectTo)
+        } else {
+          onSuccess?.()
+        }
       }, 1500)
     } else if (error) {
       // API failed

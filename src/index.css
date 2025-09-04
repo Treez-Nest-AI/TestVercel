@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure GoogleLogin button stretches full width even when rendered as iframe */
+.google-btn-wrapper {
+  width: 100%;
+}
+.google-btn-wrapper > div,
+.google-btn-wrapper iframe {
+  width: 100% !important;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

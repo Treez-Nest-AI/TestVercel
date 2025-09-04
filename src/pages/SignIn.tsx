@@ -82,7 +82,7 @@ export default function SignIn() {
             </div>
 
             <div className="space-y-4">
-              <div className="w-full">
+              <div className="w-full google-btn-wrapper">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
@@ -91,7 +91,6 @@ export default function SignIn() {
                   size="large"
                   text="continue_with"
                   shape="rectangular"
-                  width="100%"
                 />
               </div>
 

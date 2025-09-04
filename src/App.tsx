@@ -62,7 +62,7 @@ const App = () => (
             } />
             <Route path="/loading" element={
               <ProtectedRoute requireAuth={true}>
-                <Loading redirectTo="/ad-sets" />
+                <Loading />
               </ProtectedRoute>
             } />
             <Route path="/ad-sets" element={
