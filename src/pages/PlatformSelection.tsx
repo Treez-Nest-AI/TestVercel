@@ -461,7 +461,7 @@ export default function PlatformSelection() {
     
     // Meta OAuth URL
     const clientId = "620998346680108";
-    const redirectUri = "https://test-vercel-beta-sepia.vercel.app/oauth2/callback";
+    const redirectUri = "https://www.test-vercel-beta-sepia.vercel.app/api/auth/callback/facebook";
     const scope = "public_profile,email,ads_management,pages_show_list,business_management,pages_manage_ads,pages_read_engagement";
     
     const oauthUrl = `https://www.facebook.com/v23.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code&state=${Math.random().toString(36)}`;
