@@ -32,16 +32,10 @@ const Index = () => {
     }
   }, [isAuthenticated, isLoading, businessUrl, dispatch])
 
-  // If user is authenticated and has completed setup, redirect to dashboard
+  // Keep users on the home page; do not auto-redirect to dashboard
   useEffect(() => {
-    if (isAuthenticated && !isLoading) {
-      const setupComplete = localStorage.getItem('setupComplete')
-      if (setupComplete === 'true') {
-        navigate('/dashboard')
-        return
-      }
-    }
-  }, [isAuthenticated, isLoading, navigate])
+    // Intentionally left blank to avoid unexpected redirects from "/"
+  }, [isAuthenticated, isLoading])
 
   const validateUrl = (url) => {
     // Basic URL validation
@@ -103,7 +97,7 @@ const Index = () => {
         
         if (hasBusinessDetails && hasCompletedInitialSetup) {
           // User has completed initial setup - skip business details, go directly to pricing
-          navigate('/pricing')
+          navigate('/platform-selection')
         } else if (hasBusinessDetails) {
           // User has business details but hasn't completed initial setup - go to business details
           navigate('/business-details')

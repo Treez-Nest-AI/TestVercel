@@ -4,7 +4,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import App from './App.tsx'
 import './index.css'
 
-const clientId = "278428109318-l6iv9e1tfmbihejtd0e3tqkn2q3npltf.apps.googleusercontent.com"
+// Use env-provided client ID so localhost and production can be configured separately
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 createRoot(document.getElementById("root")!).render(
   <GoogleOAuthProvider clientId={clientId}>
