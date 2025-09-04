@@ -16,12 +16,15 @@ export default function SignIn() {
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       const setupComplete = localStorage.getItem('setupComplete')
-      if (setupComplete === 'true') {
+      const hasBusinessDetails = localStorage.getItem('businessDetails')
+      const hasCompletedInitialSetup = localStorage.getItem('hasCompletedInitialSetup')
+      
+      if (setupComplete === 'true' && hasBusinessDetails && hasCompletedInitialSetup) {
         navigate('/dashboard')
         return
       }
 
-      // If user is already authenticated, redirect to landing page
+      // If user is already authenticated but hasn't completed setup, go to landing page
       navigate('/')
     }
   }, [isAuthenticated, isLoading, navigate])

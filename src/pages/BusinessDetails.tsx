@@ -110,6 +110,7 @@ export default function BusinessDetails() {
       localStorage.setItem("businessDetails", JSON.stringify(formData))
       localStorage.setItem("hasCompletedInitialSetup", "true")
       toast.success("Business details saved successfully!")
+      // Navigate to pricing page instead of landing page
       navigate("/")
     } catch {
       toast.error("Something went wrong. Please try again.")

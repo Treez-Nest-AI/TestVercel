@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { CheckCircle, AlertCircle } from "lucide-react"
+import Logo from "../../public/logoo.png"
 
 // Mock Progress component
 const Progress = ({ value, className }) => (
@@ -112,8 +113,10 @@ export default function Loading({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
       <div className="max-w-md mx-auto text-center p-8">
-        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-          <span className="text-white font-bold text-2xl">T</span>
+        <div className="w-16 h-16 ">
+          {/* <span className="text-white font-bold text-2xl">T</span> */}
+
+          <img src={Logo} alt="Logo" className="w-16 h-16" />
         </div>
         
         <h1 className="text-3xl font-bold mb-4 text-gray-900">

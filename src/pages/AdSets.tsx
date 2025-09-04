@@ -538,8 +538,15 @@ export default function AdSets() {
   const [hash, setHash] = useState("");
   const [uploading, setUploading] = useState(false);
   const [generatingAI, setGeneratingAI] = useState(false);
+  const [aiGeneratedImage, setAiGeneratedImage] = useState(null);
+  const [revisedPrompt, setRevisedPrompt] = useState("");
 
   const handleNext = () => {
+    // Check if image has been uploaded (has hash)
+    if (!hash) {
+      toast.error("Please upload an image before proceeding to the next step");
+      return;
+    }
     navigate('/final-payment')
   }
 
@@ -561,15 +568,48 @@ export default function AdSets() {
     setSelectedFile(null);
     setPreviewUrl(null);
     setHash("");
+    setAiGeneratedImage(null);
+    setRevisedPrompt("");
+    // Clear the image hash from Redux as well
+    dispatch(updateCampaignField({ field: "imageHash", value: "" }));
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile && !aiGeneratedImage) {
+      toast.error("No image to upload");
+      return;
+    }
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("image", selectedFile);
+      let formData = new FormData();
+      
+      if (selectedFile) {
+        // Manual file upload
+        formData.append("image", selectedFile);
+        console.log("Uploading manual file:", selectedFile.name);
+      } else if (aiGeneratedImage) {
+        // AI generated image - try multiple approaches
+        try {
+          // First try: Use CORS proxy to fetch the image
+          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(aiGeneratedImage.url)}`;
+          console.log("Trying to fetch AI image via proxy:", proxyUrl);
+          
+          const response = await fetch(proxyUrl);
+          if (!response.ok) throw new Error("Proxy fetch failed");
+          
+          const blob = await response.blob();
+          const file = new File([blob], "ai-generated-image.png", { type: blob.type });
+          formData.append("image", file);
+          console.log("Successfully converted AI image to file via proxy");
+        } catch (proxyError) {
+          console.log("Proxy method failed, trying direct URL method:", proxyError);
+          // Fallback: Send URL to backend (if supported)
+          formData.append("image_url", aiGeneratedImage.url);
+          formData.append("is_ai_generated", "true");
+          console.log("Using direct URL method for AI image:", aiGeneratedImage.url);
+        }
+      }
 
       const res = await fetch(
         "https://dot123456.app.n8n.cloud/webhook/imghash-generator",
@@ -579,8 +619,14 @@ export default function AdSets() {
         }
       );
 
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Upload failed:", res.status, errorText);
+        throw new Error(`Upload failed: ${res.status} - ${errorText}`);
+      }
+      
       const data = await res.json();
+      console.log("Upload response:", data);
 
       // Extract hash
       const firstImageKey = Object.keys(data[0].images)[0];
@@ -588,11 +634,13 @@ export default function AdSets() {
 
       // Store in Redux
       dispatch(updateCampaignField({ field: "imageHash", value: hash }));
-      console.log(hash);
-      setHash(data.hash || JSON.stringify(data)); // adjust based on API response
+      console.log("Image hash generated:", hash);
+      setHash(hash);
+      
+      toast.success("Image uploaded successfully!");
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to upload image");
+      console.error("Upload error:", err);
+      toast.error(`Failed to upload image: ${err.message}`);
     } finally {
       setUploading(false);
     }
@@ -608,7 +656,7 @@ export default function AdSets() {
     setGeneratingAI(true);
     try {
       const response = await axios.post(
-        "https://dot123456.app.n8n.cloud/webhook/ai-img-generator",
+        "https://dot123456.app.n8n.cloud/webhook/ai-img-generator-claude",
         {
           url: campaignDetails.businessUrl,
           product_name: campaignDetails.productTitle,
@@ -626,10 +674,23 @@ export default function AdSets() {
       // Handle different possible response formats
       let imageUrl = null;
       let imageHash = null;
+      let revisedPrompt = null;
 
       if (response.data) {
+        // Handle the new array response format with revised_prompt and url
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          const firstItem = response.data[0];
+          if (firstItem.url) {
+            imageUrl = firstItem.url;
+            console.log("AI Image URL from array response:", imageUrl);
+          }
+          if (firstItem.revised_prompt) {
+            revisedPrompt = firstItem.revised_prompt;
+            console.log("Revised prompt:", revisedPrompt);
+          }
+        }
         // Handle the new array response format with file ID
-        if (Array.isArray(response.data) && response.data.length > 0 && response.data[0].id) {
+        else if (Array.isArray(response.data) && response.data.length > 0 && response.data[0].id) {
           const fileId = response.data[0].id;
           // Construct the URL using the n8n base URL and the file ID
           const n8nBaseUrl = "https://dot123456.app.n8n.cloud/";
@@ -664,13 +725,27 @@ export default function AdSets() {
         setPreviewUrl(imageUrl);
         setSelectedFile(null); // Clear any selected file since we're using AI generated image
         
-        // If the response includes a hash, store it
-        if (imageHash) {
-          dispatch(updateCampaignField({ field: "imageHash", value: imageHash }));
+        // Store AI generated image data
+        setAiGeneratedImage({
+          url: imageUrl,
+          revisedPrompt: revisedPrompt,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Store revised prompt
+        if (revisedPrompt) {
+          setRevisedPrompt(revisedPrompt);
         }
         
-        toast.success("AI image generated successfully!");
+        // Clear any existing hash - user needs to upload to generate hash
+        setHash("");
+        dispatch(updateCampaignField({ field: "imageHash", value: "" }));
+        
+        toast.success("AI image generated successfully! Please click 'Upload' to generate image hash.");
         console.log("Image URL set:", imageUrl);
+        if (revisedPrompt) {
+          console.log("Revised prompt:", revisedPrompt);
+        }
       } else {
         console.error("No image URL found in response:", response.data);
         toast.error("No image URL found in API response. Please try again.");
@@ -1035,13 +1110,27 @@ export default function AdSets() {
 
                   {/* Upload / Preview Section */}
                   <div className="relative w-full bg-black">
-                    {previewUrl ? (
+                    {generatingAI ? (
+                      <div className="flex flex-col items-center justify-center h-56 text-white">
+                        <Sparkles className="w-8 h-8 mb-2 animate-spin" />
+                        <p className="text-sm">Generating AI Image...</p>
+                        <p className="text-xs text-gray-400 mt-1">This may take a few moments</p>
+                      </div>
+                    ) : previewUrl ? (
                       <div className="relative">
                         <img
                           src={previewUrl}
                           alt="Preview"
                           className="w-full max-h-80 object-contain bg-black"
                         />
+                        {/* AI Generated Badge */}
+                        {aiGeneratedImage && (
+                          <div className="absolute top-2 left-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                            <Sparkles className="w-3 h-3 mr-1" />
+                            AI Generated
+                          </div>
+                        )}
+                       
                         {/* Cancel button (small) */}
                         <button
                           type="button"
@@ -1064,8 +1153,9 @@ export default function AdSets() {
                     )}
                   </div>
 
+
                   {/* Upload Button */}
-                  {previewUrl && (
+                  {previewUrl && !hash && (
                     <div className="flex justify-end px-4 py-2">
                       <Button
                         className="bg-blue-600 text-white text-xs h-7 px-3 rounded-md"
@@ -1074,6 +1164,16 @@ export default function AdSets() {
                       >
                         {uploading ? "Uploading..." : "Upload"}
                       </Button>
+                    </div>
+                  )}
+
+                  {/* Upload Success Indicator */}
+                  {hash && (
+                    <div className="px-4 py-2 bg-green-50 border-t">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <p className="text-xs text-green-700 font-medium">Image uploaded successfully</p>
+                      </div>
                     </div>
                   )}
 
