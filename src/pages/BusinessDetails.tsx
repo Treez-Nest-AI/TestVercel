@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from "react"
 import { toast } from "sonner"
 
 // Google Maps API key
-const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyDPq9MIskQ0LPm2j4DNZGHQrxcPA1aQAfM'
+const googleMapsApiKey = 'AIzaSyDPq9MIskQ0LPm2j4DNZGHQrxcPA1aQAfM'
 
 export default function BusinessDetails() {
   const navigate = useNavigate()
